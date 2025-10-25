@@ -1,0 +1,186 @@
+/**
+ * Album List Page Styles
+ * Styles specific to the home page (index.html) displaying album cards
+ */
+
+/* ============================================
+   Main Content Layout
+   ============================================ */
+.main-content {
+    /* Account for fixed navbar and footer */
+    margin-top: 72px;
+    margin-bottom: 60px;
+    padding: var(--spacing-xl);
+    min-height: calc(100vh - 132px);
+    position: relative;
+    z-index: 1;
+}
+
+/* ============================================
+   Album Grid Layout
+   ============================================ */
+.album-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--spacing-l);
+    max-width: 1400px;
+    margin: 0 auto;
+    animation: fadeIn 0.6s ease;
+}
+
+/* ============================================
+   Album Card Component
+   ============================================ */
+.album-card {
+    position: relative;
+    height: 350px;
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.album-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Album cover photo background */
+.album-card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
+/* Gradient overlay for better text readability */
+.album-card-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+    z-index: 2;
+    pointer-events: none;
+}
+
+/* Album name text */
+.album-card-title {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: var(--spacing-l);
+    z-index: 3;
+    color: var(--text-primary);
+    font-size: 20px;
+    font-weight: 600;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    /* Prevent text selection on card click */
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* ============================================
+   Loading State
+   ============================================ */
+.loading {
+    text-align: center;
+    padding: var(--spacing-xxl);
+    color: var(--text-muted);
+    font-size: 18px;
+}
+
+.loading::after {
+    content: '...';
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* ============================================
+   Empty State (no albums)
+   ============================================ */
+.empty-state {
+    display: none;
+    /* Empty state is just the background, nav, and footer */
+    /* No special messaging per requirements */
+}
+
+/* ============================================
+   Error State
+   ============================================ */
+.error-message {
+    text-align: center;
+    padding: var(--spacing-xxl);
+    color: var(--color-danger);
+    font-size: 16px;
+    background: var(--glass-light);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 12px;
+    border: 1px solid rgba(220, 53, 69, 0.3);
+    max-width: 600px;
+    margin: var(--spacing-xxl) auto;
+}
+
+/* ============================================
+   Responsive Design
+   ============================================ */
+
+/* Tablets */
+@media (max-width: 1024px) {
+    .album-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: var(--spacing-m);
+    }
+
+    .album-card {
+        height: 300px;
+    }
+
+    .album-card-title {
+        font-size: 18px;
+        padding: var(--spacing-m);
+    }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .main-content {
+        padding: var(--spacing-m);
+        margin-top: 64px;
+        margin-bottom: 52px;
+    }
+
+    .album-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: var(--spacing-m);
+    }
+
+    .album-card {
+        height: 250px;
+    }
+
+    .album-card-title {
+        font-size: 16px;
+        padding: var(--spacing-m);
+    }
+}
+
+/* Small mobile screens */
+@media (max-width: 480px) {
+    .album-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-m);
+    }
+
+    .album-card {
+        height: 280px;
+    }
+}

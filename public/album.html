@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Album - Pi Kappa Phi</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="View photos from Pi Kappa Phi Zeta Alpha Chapter events and activities at Clemson University. Brotherhood moments, philanthropy events, and memorable experiences.">
+    <meta name="keywords" content="Pi Kappa Phi, Clemson photos, fraternity album, brotherhood photos, event photos, Clemson University, Greek life, Pi Kapp events">
+    <meta name="author" content="Pi Kappa Phi - Zeta Alpha Chapter">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="en">
+    <meta name="theme-color" content="#002D4F">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Album - Pi Kappa Phi Photo Gallery">
+    <meta property="og:description" content="View photos from Pi Kappa Phi Zeta Alpha Chapter events and activities at Clemson University.">
+    <meta property="og:url" content="https://pikapp-photos.web.app/album.html">
+    <meta property="og:site_name" content="Pi Kappa Phi Photo Gallery">
+    <meta property="og:image" content="https://pikapp-photos.web.app/assets/pkp-logo.webp">
+    <meta property="og:image:alt" content="Pi Kappa Phi Logo">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Album - Pi Kappa Phi Photo Gallery">
+    <meta name="twitter:description" content="View photos from Pi Kappa Phi Zeta Alpha Chapter events and activities at Clemson University.">
+    <meta name="twitter:image" content="https://pikapp-photos.web.app/assets/pkp-logo.webp">
+    <meta name="twitter:image:alt" content="Pi Kappa Phi Logo">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="https://pikapp.org/wp-content/uploads/2025/01/PiKappaPhi-favicon.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://pikapp.org/wp-content/uploads/2025/01/PiKappaPhi-favicon.png">
+    <link rel="apple-touch-icon" href="https://pikapp.org/wp-content/uploads/2025/01/PiKappaPhi-favicon.png">
+    <link rel="shortcut icon" href="https://pikapp.org/wp-content/uploads/2025/01/PiKappaPhi-favicon.png">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://pikapp-photos.web.app/album.html">
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "ImageGallery",
+        "name": "Pi Kappa Phi Photo Album",
+        "description": "Photo album showcasing events and activities from Pi Kappa Phi Zeta Alpha Chapter at Clemson University",
+        "url": "https://pikapp-photos.web.app/album.html",
+        "provider": {
+            "@type": "Organization",
+            "name": "Pi Kappa Phi - Zeta Alpha Chapter",
+            "url": "https://pikapp.org",
+            "logo": "https://pikapp.org/wp-content/uploads/2025/01/PiKappaPhi-favicon.png"
+        },
+        "about": {
+            "@type": "Organization",
+            "name": "Pi Kappa Phi - Zeta Alpha Chapter",
+            "memberOf": {
+                "@type": "Organization",
+                "name": "Pi Kappa Phi Fraternity"
+            },
+            "location": {
+                "@type": "Place",
+                "name": "Clemson University",
+                "address": {
+                    "@type": "PostalAddress",
+                    "addressLocality": "Clemson",
+                    "addressRegion": "SC",
+                    "addressCountry": "US"
+                }
+            }
+        }
+    }
+    </script>
+
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- GLightbox CSS from CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox@3.2.0/dist/css/glightbox.min.css">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/shared.css">
+    <link rel="stylesheet" href="css/album.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <img src="assets/pkp-logo.webp" alt="Pi Kappa Phi Logo" class="navbar-logo" onclick="window.location.href='index.html'">
+        <div class="navbar-right">
+            <button class="navbar-button back-button" onclick="window.location.href='index.html'">
+                ← Back to Albums
+            </button>
+        </div>
+    </nav>
+
+    <!-- Album Header -->
+    <header class="album-header">
+        <h1 id="album-name" class="album-name"></h1>
+        <p id="album-info" class="album-info"></p>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Photo Grid Container -->
+        <div id="photo-grid" class="photo-grid">
+            <!-- Photo thumbnails will be dynamically inserted here by album-view.js -->
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        Designed by <a href="https://negativespace.software" target="_blank">Negative Space Software</a>
+    </footer>
+
+    <!-- GLightbox JS from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/glightbox@3.2.0/dist/js/glightbox.min.js"></script>
+
+    <!-- JavaScript - lightbox must load before album-view -->
+    <script src="js/lightbox.js"></script>
+    <script src="js/album-view.js"></script>
+</body>
+</html>
