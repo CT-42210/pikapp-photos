@@ -22,8 +22,9 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Base directory for albums
-ALBUMS_DIR="public/albums"
+# Base directories
+ALBUMS_DIR="albums"  # Photos stored here (not in /public, not deployed to Firebase)
+PUBLIC_ALBUMS_DIR="public/albums"  # Metadata (data.json) stored here (deployed to Firebase)
 
 ###############################################################################
 # Helper Functions
@@ -65,7 +66,7 @@ check_ffmpeg() {
 # Main Processing Functions
 ###############################################################################
 
-# Find all uninitialized albums (folders without data.json)
+# Find all uninitialized albums (folders without data.json in public/albums)
 find_uninitialized_albums() {
     if [ ! -d "$ALBUMS_DIR" ]; then
         print_warning "Albums directory not found: $ALBUMS_DIR"
@@ -73,10 +74,19 @@ find_uninitialized_albums() {
         print_success "Created albums directory"
     fi
 
+    if [ ! -d "$PUBLIC_ALBUMS_DIR" ]; then
+        mkdir -p "$PUBLIC_ALBUMS_DIR"
+        print_success "Created public albums directory"
+    fi
+
     # Output album directories one per line to handle spaces in names
+    # An album is uninitialized if it exists in /albums but has no [album-name].json in /public/albums
     for album_dir in "$ALBUMS_DIR"/*/ ; do
-        if [ -d "$album_dir" ] && [ ! -f "${album_dir}data.json" ]; then
-            echo "$album_dir"
+        if [ -d "$album_dir" ]; then
+            album_name=$(basename "$album_dir")
+            if [ ! -f "${PUBLIC_ALBUMS_DIR}/${album_name}.json" ]; then
+                echo "$album_dir"
+            fi
         fi
     done
 }
@@ -175,8 +185,16 @@ process_album() {
     done
     photos_json="$photos_json\n  ]"
 
-    # Create data.json with photos array
-    cat > "${album_path}data.json" <<EOF
+    # Rename album directory to snake_case
+    new_album_path="${ALBUMS_DIR}/${snake_album_name}"
+
+    if [ "$album_path" != "${new_album_path}/" ]; then
+        mv "$album_path" "$new_album_path"
+        print_success "Renamed album directory to: $snake_album_name"
+    fi
+
+    # Create JSON file in /public/albums (for Firebase deployment)
+    cat > "${PUBLIC_ALBUMS_DIR}/${snake_album_name}.json" <<EOF
 {
   "name": "$album_name",
   "photographer": "$photographer_name",
@@ -186,22 +204,14 @@ process_album() {
 }
 EOF
 
-    print_success "Created data.json"
-
-    # Rename album directory to snake_case
-    new_album_path="${ALBUMS_DIR}/${snake_album_name}"
-
-    if [ "$album_path" != "${new_album_path}/" ]; then
-        mv "$album_path" "$new_album_path"
-        print_success "Renamed album directory to: $snake_album_name"
-    fi
+    print_success "Created ${snake_album_name}.json in public/albums"
 
     echo ""
     print_success "Album '$album_name' processed successfully!"
     print_info "  - $photo_count photos processed"
     print_info "  - Thumbnails: $new_album_path/low/"
     print_info "  - Full size: $new_album_path/full/"
-    print_info "  - Metadata: $new_album_path/data.json"
+    print_info "  - Metadata: ${PUBLIC_ALBUMS_DIR}/${snake_album_name}.json"
     echo ""
 }
 
@@ -209,16 +219,18 @@ EOF
 generate_albums_manifest() {
     print_info "Generating albums.json manifest..."
 
-    if [ ! -d "$ALBUMS_DIR" ]; then
-        print_warning "Albums directory not found"
+    if [ ! -d "$PUBLIC_ALBUMS_DIR" ]; then
+        print_warning "Public albums directory not found"
         return
     fi
 
-    # Find all album directories that have data.json
+    # Find all JSON files in public/albums (each represents an album)
     local albums=()
-    for album_dir in "$ALBUMS_DIR"/*/ ; do
-        if [ -d "$album_dir" ] && [ -f "${album_dir}data.json" ]; then
-            albums+=("$(basename "$album_dir")")
+    for json_file in "$PUBLIC_ALBUMS_DIR"/*.json ; do
+        if [ -f "$json_file" ] && [ "$(basename "$json_file")" != "albums.json" ]; then
+            # Extract album name from filename (remove .json extension)
+            album_name=$(basename "$json_file" .json)
+            albums+=("$album_name")
         fi
     done
 
@@ -309,8 +321,7 @@ deploy_to_nginx() {
     print_info "Preparing to upload photos to nginx server..."
 
     # Configuration
-    local NGINX_SERVER="pikapp-photos.ct-42210.com"
-    local NGINX_USER="root"
+    local SSH_HOST="njt-hpe-proliant"  # SSH config profile
     local NGINX_PATH="/var/www/pikapp-photos"
 
     # Check if rsync is installed
@@ -321,7 +332,7 @@ deploy_to_nginx() {
         return
     fi
 
-    # Find all initialized albums (albums with /low and /full folders in public/albums)
+    # Find all initialized albums (albums with /low and /full folders in /albums)
     local albums_to_upload=()
     for album_dir in "$ALBUMS_DIR"/*/ ; do
         if [ -d "$album_dir" ] && [ -d "${album_dir}low" ] && [ -d "${album_dir}full" ]; then
@@ -341,7 +352,7 @@ deploy_to_nginx() {
     echo ""
 
     # Ask for confirmation
-    read -p "Do you want to upload photos to nginx server ($NGINX_SERVER)? (y/n): " confirm_nginx
+    read -p "Do you want to upload photos to nginx server (via $SSH_HOST)? (y/n): " confirm_nginx
 
     if [ "$confirm_nginx" != "y" ] && [ "$confirm_nginx" != "Y" ]; then
         print_warning "Nginx upload skipped"
@@ -352,33 +363,41 @@ deploy_to_nginx() {
     for album in "${albums_to_upload[@]}"; do
         print_info "Uploading album: $album"
 
+        # Create album directories on server first (if they don't exist)
+        print_info "  Creating directories on server..."
+        ssh "${SSH_HOST}" "mkdir -p ${NGINX_PATH}/${album}/low ${NGINX_PATH}/${album}/full"
+
         # Upload low and full folders using rsync
         # -a: archive mode (preserves permissions, timestamps, etc.)
         # -v: verbose
         # -z: compress during transfer
         # --progress: show progress
         # --delete: delete files on server that don't exist locally
-        # --chown: set ownership to pikapp-photos user (nginx user)
-        # --chmod: set permissions (644 for files, 755 for directories)
+        # Note: macOS rsync doesn't support --chown/--chmod, so we fix permissions via SSH after
 
         rsync -avz --progress --delete \
-            --chown=pikapp-photos:pikapp-photos \
-            --chmod=D755,F644 \
             "${ALBUMS_DIR}/${album}/low/" \
-            "${NGINX_USER}@${NGINX_SERVER}:${NGINX_PATH}/${album}/low/"
+            "${SSH_HOST}:${NGINX_PATH}/${album}/low/"
 
         rsync -avz --progress --delete \
-            --chown=pikapp-photos:pikapp-photos \
-            --chmod=D755,F644 \
             "${ALBUMS_DIR}/${album}/full/" \
-            "${NGINX_USER}@${NGINX_SERVER}:${NGINX_PATH}/${album}/full/"
+            "${SSH_HOST}:${NGINX_PATH}/${album}/full/"
 
-        print_success "  ✓ Uploaded $album"
+        # Fix ownership and permissions on server (required for nginx to serve files)
+        # - Change ownership to pikapp-photos user (the nginx user)
+        # - Set directories to 755, files to 644
+        print_info "  Setting permissions for $album..."
+        ssh "${SSH_HOST}" \
+            "chown -R pikapp-photos:pikapp-photos ${NGINX_PATH}/${album} && \
+             chmod -R 755 ${NGINX_PATH}/${album} && \
+             find ${NGINX_PATH}/${album} -type f -exec chmod 644 {} \;"
+
+        print_success "  ✓ Uploaded $album with correct permissions"
     done
 
     echo ""
     print_success "All photos uploaded to nginx server!"
-    print_info "Photos are now accessible at: https://$NGINX_SERVER/[album-name]/low/[photo].webp"
+    print_info "Photos are now accessible at: https://pikapp-photos.ct-42210.com/[album-name]/low/[photo].webp"
 }
 
 ###############################################################################

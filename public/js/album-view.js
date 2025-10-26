@@ -3,6 +3,9 @@
  * Handles loading and displaying photos for a specific album
  */
 
+// Configuration: Photo server URL (nginx server)
+const PHOTO_SERVER_URL = 'https://pikapp-photos.ct-42210.com';
+
 // Album state
 let currentAlbum = null;
 let albumPhotos = [];
@@ -36,12 +39,12 @@ async function initAlbumView() {
 }
 
 /**
- * Load album metadata from data.json
+ * Load album metadata from JSON file
  * @param {string} albumFolder - Album folder name
  */
 async function loadAlbum(albumFolder) {
     try {
-        const response = await fetch(`albums/${albumFolder}/data.json`);
+        const response = await fetch(`albums/${albumFolder}.json`);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -73,17 +76,17 @@ async function loadPhotos(albumFolder) {
             if (typeof photo === 'object' && photo.webp) {
                 const baseName = photo.webp.replace('.webp', '');
                 return {
-                    thumbnail: `albums/${albumFolder}/low/${photo.webp}`,
-                    lightbox: `albums/${albumFolder}/low/${photo.webp}`,  // Same as thumbnail - just expanded
-                    original: `albums/${albumFolder}/full/${baseName}.${photo.ext}`  // For downloads
+                    thumbnail: `${PHOTO_SERVER_URL}/${albumFolder}/low/${photo.webp}`,
+                    lightbox: `${PHOTO_SERVER_URL}/${albumFolder}/low/${photo.webp}`,  // Same as thumbnail - just expanded
+                    original: `${PHOTO_SERVER_URL}/${albumFolder}/full/${baseName}.${photo.ext}`  // For downloads
                 };
             }
             // Old format: just filename string (backward compatibility)
             else {
                 return {
-                    thumbnail: `albums/${albumFolder}/low/${photo}`,
-                    lightbox: `albums/${albumFolder}/low/${photo}`,
-                    original: `albums/${albumFolder}/full/${photo}`
+                    thumbnail: `${PHOTO_SERVER_URL}/${albumFolder}/low/${photo}`,
+                    lightbox: `${PHOTO_SERVER_URL}/${albumFolder}/low/${photo}`,
+                    original: `${PHOTO_SERVER_URL}/${albumFolder}/full/${photo}`
                 };
             }
         });

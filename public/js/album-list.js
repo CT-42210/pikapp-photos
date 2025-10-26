@@ -3,6 +3,9 @@
  * Handles loading and displaying album cards on the home page
  */
 
+// Configuration: Photo server URL (nginx server)
+const PHOTO_SERVER_URL = 'https://pikapp-photos.ct-42210.com';
+
 // Album data cache
 let albumsData = [];
 
@@ -33,23 +36,23 @@ async function loadAlbums() {
 
         const manifest = await response.json();
 
-        // Load data.json for each album in the manifest
-        const albumPromises = manifest.albums.map(async (folderName) => {
+        // Load JSON file for each album in the manifest
+        const albumPromises = manifest.albums.map(async (albumName) => {
             try {
-                const dataResponse = await fetch(`albums/${folderName}/data.json`);
+                const dataResponse = await fetch(`albums/${albumName}.json`);
                 if (!dataResponse.ok) {
-                    console.warn(`No data.json found for album: ${folderName}`);
+                    console.warn(`No JSON file found for album: ${albumName}`);
                     return null;
                 }
 
                 const albumData = await dataResponse.json();
 
                 // Add folder name to album data for navigation
-                albumData.folderName = folderName;
+                albumData.folderName = albumName;
 
                 return albumData;
             } catch (error) {
-                console.warn(`Error loading album ${folderName}: ${error.message}`);
+                console.warn(`Error loading album ${albumName}: ${error.message}`);
                 return null;
             }
         });
@@ -107,7 +110,7 @@ function createAlbumCard(album) {
     // Create cover image
     const image = document.createElement('img');
     image.className = 'album-card-image';
-    image.src = `albums/${album.folderName}/low/${album.coverPhoto}`;
+    image.src = `${PHOTO_SERVER_URL}/${album.folderName}/low/${album.coverPhoto}`;
     image.alt = album.name;
     image.loading = 'lazy'; // Native lazy loading
 
