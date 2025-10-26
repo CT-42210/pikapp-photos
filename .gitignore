@@ -75,3 +75,6 @@ node_modules/
 *.swo
 *~
 .DS_Store
+
+# Photo storage (uploaded to nginx server, not Firebase)
+/albums/
