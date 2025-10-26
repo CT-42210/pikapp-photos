@@ -1,0 +1,16 @@
+{
+  "name": "24h Bike-a-thon 10-24-2025",
+  "photographer": "Price Swann",
+  "date": "2025-10-26T18:18:09Z",
+  "coverPhoto": "24h_bikeathon_10242025_1.webp",
+  "photos": [
+    {"webp": "24h_bikeathon_10242025_1.webp", "ext": "jpg"},
+    {"webp": "24h_bikeathon_10242025_2.webp", "ext": "jpg"},
+    {"webp": "24h_bikeathon_10242025_3.webp", "ext": "jpg"},
+    {"webp": "24h_bikeathon_10242025_4.webp", "ext": "jpg"},
+    {"webp": "24h_bikeathon_10242025_5.webp", "ext": "jpg"},
+    {"webp": "24h_bikeathon_10242025_6.webp", "ext": "jpg"},
+    {"webp": "24h_bikeathon_10242025_7.webp", "ext": "jpg"},
+    {"webp": "24h_bikeathon_10242025_8.webp", "ext": "jpg"}
+  ]
+}
