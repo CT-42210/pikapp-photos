@@ -19,17 +19,24 @@ Empty state: If there are no albums yet, the home page should just show the blac
 
 FILESYSTEM ARCHITECTURE:
 Local development structure:
-- /albums/[album-name]/ - Original photos and processed photos (NOT committed to git, added to .gitignore)
-  - /albums/[album-name]/low/ - webP thumbnails (uploaded to nginx)
-  - /albums/[album-name]/full/ - Original fullsize photos (uploaded to nginx)
-- /public/ - Website files (committed to git, deployed to Firebase)
+- /public/ - Website files and album data (committed to git, deployed to Firebase)
   - /public/index.html, album.html, CSS, JS - Website code
   - /public/albums.json - Manifest of all albums
-  - /public/albums/[album-name]/data.json - Metadata for each album (no photos, just JSON)
+  - /public/albums/[album-name]/ - Album directories
+    - /public/albums/[album-name]/data.json - Metadata for each album (committed to git, deployed to Firebase)
+    - /public/albums/[album-name]/low/ - webP thumbnails (NOT committed to git, uploaded to nginx only)
+    - /public/albums/[album-name]/full/ - Original fullsize photos (NOT committed to git, uploaded to nginx only)
 
 Deployment structure:
-- Firebase Hosting: /public/ directory (website + manifests only, NO photos)
-- nginx Server: /albums/ directory photo folders (photos only, NO manifests)
+- Firebase Hosting: /public/ directory (website code + manifest JSON files only, NO photos)
+  - Includes: HTML, CSS, JS, albums.json, and data.json files
+  - Excludes: /low and /full photo directories (blocked by .gitignore and firebase.json)
+- nginx Server: /var/www/pikapp-photos/ (photos only, NO manifests)
+  - /var/www/pikapp-photos/[album-name]/low/ - webP thumbnails
+  - /var/www/pikapp-photos/[album-name]/full/ - Original photos
+
+NOTE: The /albums/ directory mentioned in earlier sections should actually be /public/albums/
+This has been corrected throughout the outline.
 
 HYBRID ARCHITECTURE - Firebase + nginx:
 - Firebase Hosting: Serves the website (HTML/CSS/JS) and manifest files (albums.json and data.json files)
@@ -63,16 +70,43 @@ Photo workflow:
 
 NGINX SERVER CONFIGURATION:
 Server address: pikapp-photos.ct-42210.com
-Server root directory: TBD (to be configured during nginx setup)
-Upload method: rsync or scp (SSH-based file transfer)
-CORS configuration: nginx must be configured to allow cross-origin requests from pikapp-photos.web.app
-  - Add CORS headers to nginx config:
+Server port: 8081 (configured to coexist with Apache on port 80)
+Server root directory: /var/www/pikapp-photos
+Server user: pikapp-photos (dedicated system user)
+Upload method: rsync via SSH (SSH key authentication)
+Upload SSH user: pikapp-photos@pikapp-photos.ct-42210.com
+
+CORS configuration: nginx is configured to allow cross-origin requests from pikapp-photos.web.app
+  - CORS headers in nginx config:
     - Access-Control-Allow-Origin: https://pikapp-photos.web.app
     - Access-Control-Allow-Methods: GET, OPTIONS
     - Access-Control-Allow-Headers: *
-Directory structure on nginx server:
-  /[album-name]/low/  - webP thumbnails
-  /[album-name]/full/ - Original fullsize photos
+    - Access-Control-Max-Age: 86400
+
+Directory structure on nginx server (/var/www/pikapp-photos):
+  /[album-name]/low/  - webP thumbnails (50% size, quality 85)
+  /[album-name]/full/ - Original fullsize photos (original format: JPG, PNG, etc.)
+
+Nginx configuration files (stored in git repo):
+  /server/nginx/nginx.conf - Main nginx configuration (runs as pikapp-photos user)
+  /server/nginx/pikapp-photos.conf - Site-specific virtual host config
+  /server/nginx/deploy.sh - Deployment script to apply configuration changes
+  /server/README.md - Server setup and deployment documentation
+
+Nginx features:
+  - Gzip compression enabled for better performance
+  - Browser caching (1 year for immutable photos)
+  - Security headers (X-Frame-Options, X-Content-Type-Options, X-XSS-Protection)
+  - Access logging: /var/log/nginx/pikapp-photos-access.log
+  - Error logging: /var/log/nginx/pikapp-photos-error.log
+  - Server tokens disabled (hides nginx version)
+  - Directory indexing disabled
+  - Hidden files denied
+
+Cloudflare configuration:
+  - Configure Cloudflare to route pikapp-photos.ct-42210.com traffic to port 8081
+  - Can use Cloudflare Tunnel or port forwarding/proxy rules
+  - SSL/HTTPS should be handled by Cloudflare (origin server uses HTTP on port 8081)
 
 UPLOAD.SH SCRIPT:
 Location: Project root directory
@@ -107,9 +141,16 @@ The script will:
 - ASK FOR CONFIRMATION before uploading photos to nginx server
 - ASK FOR CONFIRMATION before pushing to git
 - ASK FOR CONFIRMATION before deploying to Firebase
-- Upload photos to nginx server (if confirmed): rsync or scp the /albums/[album-name]/ directory (containing /low and /full) to the nginx server at pikapp-photos.ct-42210.com
+- Upload photos to nginx server (if confirmed):
+  - Uses rsync to upload /public/albums/[album-name]/low/ to pikapp-photos@pikapp-photos.ct-42210.com:/var/www/pikapp-photos/[album-name]/low/
+  - Uses rsync to upload /public/albums/[album-name]/full/ to pikapp-photos@pikapp-photos.ct-42210.com:/var/www/pikapp-photos/[album-name]/full/
+  - Rsync flags: -avz --progress --delete (archive mode, verbose, compress, show progress, delete removed files)
+  - Requires SSH key authentication for pikapp-photos user
 - Push updates to git (if confirmed): commits the updated /public/albums.json and /public/albums/[album-name]/data.json files
 - Deploy to Firebase (if confirmed): deploys the website and manifest files to Firebase Hosting
+- NOTE: The upload.sh script uploads photos from /public/albums/[album-name]/ NOT /albums/[album-name]/
+  - This is because photo processing happens in the /public/albums/ directory
+  - The /albums/ directory in the project root is NOT used (see corrected architecture below)
 
 RESET-ALBUM.SH SCRIPT:
 Location: Project root directory

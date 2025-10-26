@@ -304,6 +304,77 @@ deploy_to_firebase() {
     print_success "Deployed to Firebase"
 }
 
+# Deploy photos to nginx server
+deploy_to_nginx() {
+    print_info "Preparing to upload photos to nginx server..."
+
+    # Configuration
+    local NGINX_SERVER="pikapp-photos.ct-42210.com"
+    local NGINX_USER="pikapp-photos"
+    local NGINX_PATH="/var/www/pikapp-photos"
+
+    # Check if rsync is installed
+    if ! command -v rsync &> /dev/null; then
+        print_error "rsync is not installed. Please install it first:"
+        print_info "  macOS: brew install rsync"
+        print_info "  Linux: sudo apt-get install rsync"
+        return
+    fi
+
+    # Find all initialized albums (albums with /low and /full folders in public/albums)
+    local albums_to_upload=()
+    for album_dir in "$ALBUMS_DIR"/*/ ; do
+        if [ -d "$album_dir" ] && [ -d "${album_dir}low" ] && [ -d "${album_dir}full" ]; then
+            albums_to_upload+=("$(basename "$album_dir")")
+        fi
+    done
+
+    if [ ${#albums_to_upload[@]} -eq 0 ]; then
+        print_warning "No albums with photos found to upload"
+        return
+    fi
+
+    print_info "Found ${#albums_to_upload[@]} album(s) to upload:"
+    for album in "${albums_to_upload[@]}"; do
+        echo "  - $album"
+    done
+    echo ""
+
+    # Ask for confirmation
+    read -p "Do you want to upload photos to nginx server ($NGINX_SERVER)? (y/n): " confirm_nginx
+
+    if [ "$confirm_nginx" != "y" ] && [ "$confirm_nginx" != "Y" ]; then
+        print_warning "Nginx upload skipped"
+        return
+    fi
+
+    # Upload each album
+    for album in "${albums_to_upload[@]}"; do
+        print_info "Uploading album: $album"
+
+        # Upload low and full folders using rsync
+        # -a: archive mode (preserves permissions, timestamps, etc.)
+        # -v: verbose
+        # -z: compress during transfer
+        # --progress: show progress
+        # --delete: delete files on server that don't exist locally
+
+        rsync -avz --progress --delete \
+            "${ALBUMS_DIR}/${album}/low/" \
+            "${NGINX_USER}@${NGINX_SERVER}:${NGINX_PATH}/${album}/low/"
+
+        rsync -avz --progress --delete \
+            "${ALBUMS_DIR}/${album}/full/" \
+            "${NGINX_USER}@${NGINX_SERVER}:${NGINX_PATH}/${album}/full/"
+
+        print_success "  ✓ Uploaded $album"
+    done
+
+    echo ""
+    print_success "All photos uploaded to nginx server!"
+    print_info "Photos are now accessible at: https://$NGINX_SERVER/[album-name]/low/[photo].webp"
+}
+
 ###############################################################################
 # Main Script Execution
 ###############################################################################
@@ -337,6 +408,8 @@ main() {
         echo ""
 
         # Still offer deployment options
+        deploy_to_nginx
+        echo ""
         deploy_to_git
         echo ""
         deploy_to_firebase
@@ -362,6 +435,8 @@ main() {
     echo ""
 
     # Deployment
+    deploy_to_nginx
+    echo ""
     deploy_to_git
     echo ""
     deploy_to_firebase

@@ -77,4 +77,6 @@ node_modules/
 .DS_Store
 
 # Photo storage (uploaded to nginx server, not Firebase)
-/albums/
+# Exclude the /low and /full directories inside each album folder
+public/albums/*/low/
+public/albums/*/full/
