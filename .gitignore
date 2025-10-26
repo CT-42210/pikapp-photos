@@ -78,4 +78,5 @@ node_modules/
 
 # Photo storage (uploaded to nginx server, not Firebase or git)
 # All photos are stored in /albums at project root (NOT in /public)
-albums/
+# The leading slash ensures this only matches /albums at the root, not public/albums
+/albums/
