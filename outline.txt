@@ -72,9 +72,9 @@ NGINX SERVER CONFIGURATION:
 Server address: pikapp-photos.ct-42210.com
 Server port: 8081 (configured to coexist with Apache on port 80)
 Server root directory: /var/www/pikapp-photos
-Server user: pikapp-photos (dedicated system user)
+Server user: pikapp-photos (dedicated system user - runs nginx)
 Upload method: rsync via SSH (SSH key authentication)
-Upload SSH user: pikapp-photos@pikapp-photos.ct-42210.com
+Upload SSH user: root@pikapp-photos.ct-42210.com (uses existing njt-hpe-proliant root SSH key)
 
 CORS configuration: nginx is configured to allow cross-origin requests from pikapp-photos.web.app
   - CORS headers in nginx config:

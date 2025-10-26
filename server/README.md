@@ -57,15 +57,22 @@ The `deploy.sh` script will:
 - Test nginx configuration
 - Reload nginx
 
-### 5. Configure Cloudflare
+### 5. Configure Cloudflare Tunnel
 
-In your Cloudflare dashboard:
-1. Go to your domain settings for `ct-42210.com`
-2. Add a DNS record:
-   - Type: `A` or `CNAME`
-   - Name: `pikapp-photos`
-   - Target: Your server IP
-3. Configure Cloudflare Tunnel or port routing to forward traffic to port 8081
+Cloudflare Tunnel is already configured on this server. The tunnel configuration has been updated to include the pikapp-photos subdomain:
+
+```bash
+# The configuration is stored in:
+# - System: /etc/cloudflared/config.yml
+# - Git repo: /root/pikapp-photos/server/cloudflared-config.yml
+
+# To update the tunnel configuration:
+sudo cp /root/pikapp-photos/server/cloudflared-config.yml /etc/cloudflared/config.yml
+sudo cloudflared --config /etc/cloudflared/config.yml tunnel ingress validate
+sudo systemctl restart cloudflared
+```
+
+The tunnel automatically routes `pikapp-photos.ct-42210.com` → `localhost:8081`
 
 ## Photo Upload Workflow
 
@@ -80,8 +87,11 @@ This script will:
 1. Process photos locally (create webP thumbnails and copy originals)
 2. Upload photos to nginx server via rsync/scp:
    ```bash
-   rsync -avz --progress /albums/[album-name]/ pikapp-photos@pikapp-photos.ct-42210.com:/var/www/pikapp-photos/[album-name]/
+   rsync -avz --progress /public/albums/[album-name]/low/ root@pikapp-photos.ct-42210.com:/var/www/pikapp-photos/[album-name]/low/
+   rsync -avz --progress /public/albums/[album-name]/full/ root@pikapp-photos.ct-42210.com:/var/www/pikapp-photos/[album-name]/full/
    ```
+
+**Note:** The upload uses the root SSH user with the existing njt-hpe-proliant SSH key for authentication.
 
 ## File Permissions
 

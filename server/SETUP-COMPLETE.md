@@ -57,38 +57,22 @@ The nginx server has been successfully configured on this server to host photos 
 
 ## Next Steps
 
-### 1. Configure Cloudflare
-You need to configure Cloudflare to route traffic from `pikapp-photos.ct-42210.com` to port 8081 on this server.
+### 1. Cloudflare Tunnel - ✅ CONFIGURED
+Cloudflare Tunnel has been configured and is running:
 
-**Option A: Cloudflare Tunnel (Recommended)**
-- Set up a Cloudflare Tunnel pointing to `localhost:8081`
-- More secure, no need to open firewall ports
+- ✅ Tunnel service: `ct-42210-server` (running)
+- ✅ Route configured: `pikapp-photos.ct-42210.com` → `localhost:8081`
+- ✅ Config file: `/etc/cloudflared/config.yml` (also backed up in git repo)
 
-**Option B: Port Forwarding**
-- Configure DNS: Point `pikapp-photos.ct-42210.com` to your server IP
-- Configure Cloudflare proxy rules to forward to port 8081
-- May need to open port 8081 in firewall
+The Cloudflare Tunnel is already active and routing traffic. No additional configuration needed!
 
-### 2. Set Up SSH Key Authentication
-For the upload script to work, you need to set up SSH key authentication:
+### 2. SSH Key Authentication - ✅ CONFIGURED
+SSH authentication is already set up:
 
-```bash
-# On your local machine (where you'll run upload.sh)
-ssh-keygen -t ed25519 -C "pikapp-photos-upload"
+- ✅ Using existing root SSH key: `njt-hpe-proliant`
+- ✅ Upload target: `root@pikapp-photos.ct-42210.com`
 
-# Copy the public key to the server
-ssh-copy-id pikapp-photos@pikapp-photos.ct-42210.com
-```
-
-Alternatively, manually add your public key:
-```bash
-# On the server
-sudo -u pikapp-photos mkdir -p /home/pikapp-photos/.ssh
-sudo -u pikapp-photos chmod 700 /home/pikapp-photos/.ssh
-sudo -u pikapp-photos nano /home/pikapp-photos/.ssh/authorized_keys
-# Paste your public key, save and exit
-sudo -u pikapp-photos chmod 600 /home/pikapp-photos/.ssh/authorized_keys
-```
+The upload script will use the existing root user SSH key for photo uploads. No additional setup needed!
 
 ### 3. Test Photo Upload
 After SSH keys are configured, test the upload:

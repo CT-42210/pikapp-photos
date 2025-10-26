@@ -310,7 +310,7 @@ deploy_to_nginx() {
 
     # Configuration
     local NGINX_SERVER="pikapp-photos.ct-42210.com"
-    local NGINX_USER="pikapp-photos"
+    local NGINX_USER="root"
     local NGINX_PATH="/var/www/pikapp-photos"
 
     # Check if rsync is installed
@@ -358,12 +358,18 @@ deploy_to_nginx() {
         # -z: compress during transfer
         # --progress: show progress
         # --delete: delete files on server that don't exist locally
+        # --chown: set ownership to pikapp-photos user (nginx user)
+        # --chmod: set permissions (644 for files, 755 for directories)
 
         rsync -avz --progress --delete \
+            --chown=pikapp-photos:pikapp-photos \
+            --chmod=D755,F644 \
             "${ALBUMS_DIR}/${album}/low/" \
             "${NGINX_USER}@${NGINX_SERVER}:${NGINX_PATH}/${album}/low/"
 
         rsync -avz --progress --delete \
+            --chown=pikapp-photos:pikapp-photos \
+            --chmod=D755,F644 \
             "${ALBUMS_DIR}/${album}/full/" \
             "${NGINX_USER}@${NGINX_SERVER}:${NGINX_PATH}/${album}/full/"
 
