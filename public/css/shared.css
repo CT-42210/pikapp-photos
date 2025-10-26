@@ -116,14 +116,20 @@ body::after {
     justify-content: space-between;
 }
 
+.navbar-logos {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-m);
+    cursor: pointer;
+}
+
 .navbar-logo {
     height: 40px;
     width: auto;
-    cursor: pointer;
     transition: all 0.3s ease;
 }
 
-.navbar-logo:hover {
+.navbar-logos:hover .navbar-logo {
     transform: scale(1.05);
 }
 
@@ -237,6 +243,10 @@ body::after {
 @media (max-width: 768px) {
     .navbar {
         padding: var(--spacing-m) var(--spacing-m);
+    }
+
+    .navbar-logos {
+        gap: var(--spacing-s);
     }
 
     .navbar-logo {
