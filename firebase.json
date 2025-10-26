@@ -18,6 +18,10 @@
       }
     ],
     "cleanUrls": true,
-    "trailingSlash": false
+    "trailingSlash": false,
+    "release": {
+      "version": "live",
+      "max": 2
+    }
   }
 }
